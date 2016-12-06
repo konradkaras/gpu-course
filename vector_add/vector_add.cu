@@ -3,6 +3,7 @@
 extern "C" {
     void start_timer();
     void stop_timer(float *time);
+    __global__ void vec_add_kernel(float *c, float *a, float *b, int n);
 }
 
 int compare_arrays(float *c, float *d, int n);
@@ -14,7 +15,7 @@ void vec_add(float *c, float *a, float *b, int n) {
 }
 
 __global__ void vec_add_kernel(float *c, float *a, float *b, int n) {
-    int i = 0;   // Oops! Something is not right here, please fix it!
+    int i = threadIdx.x + blockIdx.x * blockDim.x;   // Oops! Something is not right here, please fix it!
     if (i < n) {
         c[i] = a[i] + b[i];
     }
