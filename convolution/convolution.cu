@@ -87,7 +87,7 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
     //}
     for(int i=ty; i < block_size_y+border_height; i+=block_size_y) {
         for(int j=tx; j < block_size_x+border_width; j+=block_size_x) {
-            sh_input[i][j] = input[(by+i)*input_width + (bx+j)];
+            sh_input[i][j] = input[(by+i)*input_width+bx+j)];
         }
     }
 
