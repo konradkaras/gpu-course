@@ -85,9 +85,9 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
             //...
         //}
     //}
-    for(int i=0; i < block_size_y+border_height; i+=block_size_y) {
-        for(int j=0; j < block_size_x+border_width; j+=block_size_x) {
-            sh_input[i][j] = input[(y+i-border_height)*input_width+x+j-border_width];
+    for(int i=ty; i < block_size_y+border_height; i+=block_size_y) {
+        for(int j=tx; j < block_size_x+border_width; j+=block_size_x) {
+            sh_input[i][j] = input[(by+i)*input_width + (bx+j)];
         }
     }
 
@@ -101,7 +101,7 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
     for (int i=0; i < filter_height; i++) {
         for (int j=0; j < filter_width; j++) {
             // Oops! I forgot to actually use sh_input instead of input! Please fix it!
-            sum += input[(y+i)*input_width+x+j] * conv_filter[i*filter_width+j];
+            sum += sh_input[ty+i][tx+j] * conv_filter[i*filter_width+j];
         }
     }
 
