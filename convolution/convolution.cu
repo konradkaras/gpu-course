@@ -54,7 +54,7 @@ __global__ void convolution_kernel_naive(float *output, float *input, float *fil
     //for each filter weight
     for (int i=0; i < filter_height; i++) {
         for (int j=0; j < filter_width; j++) {
-            sum += input[(y+i)*input_width+x+j] * filter[i*filter_width+j];
+            sum += input[(y+i)*input_width+x+j] * conv_filter[i*filter_width+j];
         }
     }
 
@@ -156,7 +156,7 @@ int main() {
     err = cudaMemcpy(d_filter, filter, filter_height*filter_width*sizeof(float), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) { fprintf(stderr, "Error in cudaMemcpy host to device filter: %s\n", cudaGetErrorString( err )); errors++; }
 
-    err = cudaMemcpyToSymbol(conv_filter, filter, filter_height * filter_width * sizeof(float2));
+    err = cudaMemcpyToSymbol(conv_filter, filter, filter_height * filter_width * sizeof(float));
     if (err != cudaSuccess) {
         fprintf(stderr, "Error in cudaMemcpyToSymbol: %s\n", cudaGetErrorString( err ));
     }
