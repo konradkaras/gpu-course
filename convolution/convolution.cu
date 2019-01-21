@@ -23,6 +23,8 @@ int compare_arrays(float *c, float *d, int n);
 #define input_height (image_height + border_height)
 #define input_width (image_width + border_width)
 
+__constant__ float conv_filter[filter_width * filter_height];
+
 void convolve(float *output, float *input, float *filter) {
     //for each pixel in the output image
     for (int y=0; y < image_height; y++) {
@@ -83,6 +85,11 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
             //...
         //}
     //}
+    for(int i=0; i < block_size_y+border_height; i+=block_size_y) {
+        for(int j=0; j < block_size_x+border_width; j+=block_size_x) {
+            sh_input[i][j] = input[(y+i-border_height)*input_width+x+j-border_width];
+        }
+    }
 
     //synchronize to make all writes visible to all threads within the thread block
     __syncthreads();
@@ -94,7 +101,7 @@ __global__ void convolution_kernel(float *output, float *input, float *filter) {
     for (int i=0; i < filter_height; i++) {
         for (int j=0; j < filter_width; j++) {
             // Oops! I forgot to actually use sh_input instead of input! Please fix it!
-            sum += input[(y+i)*input_width+x+j] * filter[i*filter_width+j];
+            sum += input[(y+i)*input_width+x+j] * conv_filter[i*filter_width+j];
         }
     }
 
@@ -148,6 +155,11 @@ int main() {
     if (err != cudaSuccess) { fprintf(stderr, "Error in cudaMemcpy host to device input: %s\n", cudaGetErrorString( err )); errors++; }
     err = cudaMemcpy(d_filter, filter, filter_height*filter_width*sizeof(float), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) { fprintf(stderr, "Error in cudaMemcpy host to device filter: %s\n", cudaGetErrorString( err )); errors++; }
+
+    err = cudaMemcpyToSymbol(conv_filter, filter, filter_height * filter_width * sizeof(float2));
+    if (err != cudaSuccess) {
+        fprintf(stderr, "Error in cudaMemcpyToSymbol: %s\n", cudaGetErrorString( err ));
+    }
 
     //zero the output array
     err = cudaMemset(d_output, 0, image_height*image_width*sizeof(float));
